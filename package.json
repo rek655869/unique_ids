@@ -1,0 +1,12 @@
+{
+  "name": "unique_ids",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {
+    "prettier": "3.4.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rek655869/unique_ids.git"
+  }
+}
