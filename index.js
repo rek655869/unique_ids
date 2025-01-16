@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Уникальные ID предметов
-// @version      1.1.0
+// @version      1.0.0
 // @author       rek655869
 // @license      MIT
 // @match        https://catwar.net/cw3/
@@ -14,7 +14,7 @@
       /* Уникальные ID предметов */
       /* для тем */
 
-      :root {
+      .uniq_ids {
         --uniq_ids-bg-color: #f0f0f0;
         --uniq_ids-text-color: #535353;
         --uniq_ids-header-bg-color: #555;
@@ -22,7 +22,7 @@
         --uniq_ids-border-color: #ccc;
       }
 
-      [data-theme="dark"] {
+      .uniq_ids[theme="dark"] {
         --uniq_ids-bg-color: #2a2a2a;
         --uniq_ids-text-color: #c6c6c6;
         --uniq_ids-header-bg-color: #222222;
@@ -32,7 +32,7 @@
 
       /* для окна */
 
-      .uniq_ids.window {
+      #uniq_ids-window {
         position: absolute;
         width: 300px;
         height: 200px;
@@ -49,7 +49,7 @@
 
       /* для заголовка */
 
-      .uniq_ids.header {
+      #uniq_ids-header {
         height: 30px;
         background-color: var(--uniq_ids-header-bg-color);
         color: var(--uniq_ids-header-color);
@@ -62,7 +62,7 @@
 
       /* для кнопки смены темы */
 
-      .uniq_ids.theme_button {
+      #uniq_ids-theme_button {
         cursor: pointer;
         border: none;
         background: transparent;
@@ -72,7 +72,7 @@
 
       /* содержимое окна */
 
-      .uniq_ids.content {
+      #uniq_ids-content {
         padding: 5px;
         overflow-y: auto;
         height: calc(100% - 30px);
@@ -81,28 +81,40 @@
 
       /* таблица */
 
-      table.uniq_ids {
+      #uniq_ids-content table {
         width: 100%;
       }
 
-      table.uniq_ids td {
+      #uniq_ids-content table td {
         border-bottom: 1px solid var(--uniq_ids-border-color);
       }
 
-      table.uniq_ids tr td:first-child {
+      #uniq_ids-content table tr td:first-child {
         padding: 5px;
         width: 50px;
       }
 
-      table.uniq_ids img {
+      #uniq_ids-content table img {
         width: 50px;
         height: 50px;
       }
 
-      table.uniq_ids tr td:last-child {
+      #uniq_ids-content table tr td:last-child {
         padding: 5px;
       }
     `);
+
+    let $settings = JSON.parse(localStorage.getItem("uniq_ids-settings")) || {
+      theme: "light",
+      window: {
+        width: 300,
+        height: 300,
+        top: 20,
+        left: 500,
+      },
+    };
+    const saveSettings = () =>
+      localStorage.setItem("uniq_ids-settings", JSON.stringify($settings));
 
     // ждём открытие страницы и её загрузку
     const observer = new MutationObserver(() => {
@@ -110,34 +122,35 @@
         location.href === "https://catwar.net/cw3/" ||
         location.href === "https://catwar.su/cw3/"
       ) {
-        if ($("#itemList").length) {
-          showWindow();
+        let $itemList = $("#itemList");
+        if ($itemList.length) {
+          showWindow($itemList);
           $("head").append(style);
           observer.disconnect();
         }
       }
     });
 
-    function showWindow() {
-      // инициализация темы
-      let loadTheme = () => {
-        let savedTheme = localStorage.getItem("uniq_ids-theme") || "light";
-        document.documentElement.setAttribute("data-theme", savedTheme);
-      };
-
-      let saveTheme = (theme) => {
-        localStorage.setItem("uniq_ids-theme", theme);
-      };
-
-      loadTheme();
-
-      let $floatWindow = $("<div></div>").addClass("uniq_ids window");
+    function showWindow($itemList) {
+      let $floatWindow = $("<div></div>")
+        .addClass("uniq_ids")
+        .attr({
+          id: "uniq_ids-window",
+          theme: $settings.theme,
+        })
+        .css({
+          width: `${$settings.window.width}px`,
+          height: `${$settings.window.height}px`,
+          top: `${$settings.window.top}px`,
+          left: `${$settings.window.left}px`,
+        });
       let $header = $("<div></div>")
-        .addClass("uniq_ids header")
+        .attr("id", "uniq_ids-header")
         .text("Уникальные ID предметов");
 
-      let $themeButton = $("<button></button>").addClass(
-        "uniq_ids theme_button",
+      let $themeButton = $("<button></button>").attr(
+        "id",
+        "uniq_ids-theme_button",
       )
         .html(`<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-sun" viewBox="0 0 16 16">
   <g><title>Сменить тему</title><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
@@ -145,85 +158,23 @@
 
       // переключение темы
       $themeButton.on("click", () => {
-        const currentTheme =
-          document.documentElement.getAttribute("data-theme");
-        const newTheme = currentTheme === "dark" ? "light" : "dark";
-        document.documentElement.setAttribute("data-theme", newTheme);
-        saveTheme(newTheme);
+        const newTheme = $settings.theme === "dark" ? "light" : "dark";
+        $floatWindow.attr("theme", newTheme);
+        $settings.theme = newTheme;
       });
       $header.append($themeButton);
 
-      // сохранение состояния окна
-      let saveWindowState = () => {
-        let state = {
-          width: $floatWindow.width(),
-          height: $floatWindow.height(),
-          top: $floatWindow.offset().top,
-          left: $floatWindow.offset().left,
-        };
-        localStorage.setItem("uniq_ids-window-state", JSON.stringify(state));
-      };
+      let $content = $("<div></div>").attr("id", "uniq_ids-content");
+      let $table = $("<table></table>");
 
-      // получение последнего состояния окна
-      let loadWindowState = () => {
-        let state = JSON.parse(localStorage.getItem("uniq_ids-window-state"));
-        if (state) {
-          $floatWindow.css({
-            width: `${state.width}px`,
-            height: `${state.height}px`,
-            top: `${state.top}px`,
-            left: `${state.left}px`,
-          });
-        }
-      };
-
-      loadWindowState();
-
-      let $content = $("<div></div>").addClass("uniq_ids content");
-      let $table = $("<table></table>").addClass("uniq_ids");
-
-      // парсинг данных из #itemList
-      let $itemList = $("#itemList");
-      if (itemList) {
-        let $items = $itemList.find(".itemInMouth");
-        let imageToIdsMap = new Map();
-
-        $items.each(function () {
-          const $item = $(this);
-          let id = $item.attr("id");
-          let $img = $item.find("img");
-          let src = $img.length > 0 ? $img[0].src : null;
-
-          if (src) {
-            if (!imageToIdsMap.has(src)) {
-              imageToIdsMap.set(src, []);
-            }
-            imageToIdsMap.get(src).push(id);
-          }
-        });
-
-        // заполняем таблицу
-        imageToIdsMap.forEach((ids, src) => {
-          let $row = $("<tr></tr>");
-
-          let $imgCell = $("<td></td>");
-          let $imgElement = $("<img />").attr("src", src);
-          $imgCell.append($imgElement);
-
-          let $idsCell = $("<td></td>").text(ids.join(", "));
-
-          $row.append($imgCell);
-          $row.append($idsCell);
-          $table.append($row);
-        });
-      }
+      parseItems($itemList, $table);
 
       $content.append($table);
       $floatWindow.append($header);
       $floatWindow.append($content);
       $("body").append($floatWindow);
 
-      // Реализация перетаскивания
+      // реализация перетаскивания
       let isDragging = false;
       let offsetX = 0;
       let offsetY = 0;
@@ -245,70 +196,73 @@
       });
 
       $(document).on("mouseup", () => {
-        if (isDragging) {
-          saveWindowState();
-        }
+        $settings.window.top = $floatWindow.offset().top;
+        $settings.window.left = $floatWindow.offset().left;
+        saveSettings();
         isDragging = false;
         $("body").css("userSelect", "");
       });
 
-      $(window).on("beforeunload", saveWindowState);
+      window.addEventListener("beforeunload", () => {
+        $settings.window.width = $floatWindow.width();
+        $settings.window.height = $floatWindow.height();
+        saveSettings();
+      });
 
-      // Добавление наблюдателя для элемента #itemList
-      let observeItemListChanges = () => {
-        let $itemList = $("#itemList");
-        if (!$itemList) return;
-
-        let observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-            if (
-              mutation.type === "childList" ||
-              mutation.type === "attributes"
-            ) {
-              $table.empty();
-
-              // перезаполнение таблицы
-              let $items = $itemList.find(".itemInMouth");
-              let imageToIdsMap = new Map();
-
-              $items.each(function () {
-                const $item = $(this);
-                let id = $item.attr("id");
-                let $img = $item.find("img");
-                let src = $img.length > 0 ? $img[0].src : null;
-
-                if (src) {
-                  if (!imageToIdsMap.has(src)) {
-                    imageToIdsMap.set(src, []);
-                  }
-                  imageToIdsMap.get(src).push(id);
-                }
-              });
-
-              imageToIdsMap.forEach((ids, src) => {
-                let $row = $("<tr></tr>");
-
-                let $imgCell = $("<td></td>");
-                let $imgElement = $("<img />").attr("src", src);
-                $imgCell.append($imgElement);
-
-                let $idsCell = $("<td></td>").text(ids.join(", "));
-
-                $row.append($imgCell);
-                $row.append($idsCell);
-                $table.append($row);
-              });
-            }
-          });
+      // добавление наблюдателя для элемента #itemList
+      let observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === "childList" || mutation.type === "attributes") {
+            $table.empty();
+            parseItems($itemList, $table);
+          }
         });
+      });
 
-        observer.observe($itemList[0], {
-          childList: true,
-          attributes: true,
-          subtree: true,
-        });
-      };
-      observeItemListChanges();
+      observer.observe($itemList[0], {
+        childList: true,
+        attributes: false,
+        subtree: true,
+      });
+    }
+
+    /**
+     * Парсинг данных из itemList
+     * @param $table Таблица, в которую будут добавлены данные
+     * @param $itemList Список предметов
+     */
+    function parseItems($itemList, $table) {
+      let $items = $itemList.find(".itemInMouth");
+      let imageToIdsMap = new Map();
+
+      $items.each(function () {
+        const $item = $(this);
+        let id = $item.attr("id");
+        let $img = $item.find("img");
+        let src = $img.length > 0 ? $img[0].src : null;
+
+        if (src) {
+          if (!imageToIdsMap.has(src)) {
+            imageToIdsMap.set(src, []);
+          }
+          imageToIdsMap.get(src).push(id);
+        }
+      });
+
+      // заполняем таблицу
+      imageToIdsMap.forEach((ids, src) => {
+        let $row = $("<tr></tr>");
+
+        let $imgCell = $("<td></td>");
+        let $imgElement = $("<img />").attr("src", src);
+        $imgCell.append($imgElement);
+
+        let $idsCell = $("<td></td>").text(ids.join(", "));
+
+        $row.append($imgCell);
+        $row.append($idsCell);
+        $table.append($row);
+      });
     }
 
     observer.observe(document, { childList: true, subtree: true });
