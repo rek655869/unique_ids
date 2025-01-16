@@ -8,5 +8,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rek655869/unique_ids.git"
+  },
+  "prettier": {
+    "singleQuote": true
   }
 }
