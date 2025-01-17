@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Уникальные ID предметов
-// @version      1.0.0
+// @version      1.1.0
 // @author       rek655869
 // @license      MIT
 // @match        https://catwar.net/cw3/
@@ -69,6 +69,19 @@
         color: var(--uniq_ids-header-color);
         display: flex;
       }
+      
+      /* для кнопки копирования */
+      
+      .uniq_ids-copy-button {
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: var(--uniq_ids-text-color);
+        position: absolute;
+        top: 50%;
+        right: 0.01rem;
+        transform: translateY(-50%);
+      }
 
       /* содержимое окна */
 
@@ -88,6 +101,10 @@
       #uniq_ids-content table td {
         border-bottom: 1px solid var(--uniq_ids-border-color);
       }
+      
+      #uniq_ids-content table td:last-of-type {
+        position: relative;
+      }
 
       #uniq_ids-content table tr td:first-child {
         padding: 5px;
@@ -103,6 +120,16 @@
         padding: 5px;
       }
     `);
+
+    const baseClipboard = `<svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" fill="currentColor" class="bi bi-clipboard-check-fill" viewBox="0 0 22 22"><g>
+<path fill-rule="evenodd" d="M5.5 9.5A.5.5 0 0 1 6 9h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5"/>
+  <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
+  <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
+</g></svg>`;
+    const fillClipboard = `<svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" fill="currentColor" class="bi bi-clipboard-check-fill" viewBox="0 0 22 22"><g>
+  <path d="M6.5 0A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0zm3 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5z"/>
+  <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1A2.5 2.5 0 0 1 9.5 5h-3A2.5 2.5 0 0 1 4 2.5zm6.854 7.354-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
+</g></svg>`;
 
     let $settings = JSON.parse(localStorage.getItem('uniq_ids-settings')) || {
       theme: 'light',
@@ -253,14 +280,22 @@
       imageToIdsMap.forEach((ids, src) => {
         let $row = $('<tr></tr>');
 
-        let $imgCell = $('<td></td>');
         let $imgElement = $('<img />').attr('src', src);
-        $imgCell.append($imgElement);
 
-        let $idsCell = $('<td></td>').text(ids.join(', '));
+        let $copyButton = $('<button></button>')
+          .addClass('uniq_ids-copy-button')
+          .html(baseClipboard);
 
-        $row.append($imgCell);
-        $row.append($idsCell);
+        $copyButton.on('click', () => {
+          $('.uniq_ids-copy-button').html(baseClipboard);
+          navigator.clipboard.writeText(ids.join('\n')).then(() => {
+            $copyButton.html(fillClipboard);
+          });
+        });
+
+        $row.append($('<td></td>').append($imgElement));
+        $row.append($('<td></td>').text(ids.join(', ')));
+        $row.append($('<td></td>').append($copyButton));
         $table.append($row);
       });
     }
